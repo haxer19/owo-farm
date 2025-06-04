@@ -108,16 +108,16 @@ async def parse_gems(inventory_message):
     for tier in ['1', '2', '3', '4']:
         if gems_by_tier[tier]:
             selected_gems.append(gems_by_tier[tier][0][1])
-    
+
     return selected_gems
 
 async def do_gem_check(ctx):
     await ctx.send("owo inventory")
     await made_by_ghosty.sleep(3)  
-    
+
     try:
         latest_messages = await ctx.channel.history(limit=2).flatten()
-        
+
         for message in latest_messages:
             if message.author.id == 408785106942164992:  
                 if "inventory" in message.content.lower():
@@ -139,10 +139,10 @@ async def check_warning(ctx):
     global running
     try:
         messages = await ctx.channel.history(limit=10).flatten()
-        
+
         for msg in messages:
             msg_content = str(msg.content).lower()
-      
+
             checkph = [
                 "captcha",
                 "Please complete thi​s wit​hin 1​0 m​inutes o​r i​t m​ay r​esult i​n a​ ba​n!",
@@ -151,10 +151,10 @@ async def check_warning(ctx):
             ]
             if any(phrase.lower() in msg_content for phrase in checkph):
 
-            
+
                 global running
                 running = False
-                
+
                 await ctx.send("⚠ Warning Detected! 🛑 Stopping The Process | Type .start again to re-start grinding")
                 print("⚠ Warning Detected! 🛑 Stopping The Process | Type .start again to re-start grinding")
                 return True
@@ -163,46 +163,11 @@ async def check_warning(ctx):
         print(f"Warning check error: {e}")
         return False
 
-async def equip_best(ctx):
-    await ctx.send("owo team remove all")
-    await made_by_ghosty.sleep(2)
-    await ctx.send("owo zoo")
-    await made_by_ghosty.sleep(3)
-
-    try:
-        messages = await ctx.channel.history(limit=5).flatten()
-        for msg in messages:
-            if msg.author.id == 408785106942164992 and "zoo" in msg.content.lower():
-                lines = msg.content.split('\n')
-                animals = []
-                rarity_score = {'c': 1, 'u': 2, 'r': 3, 'e': 4, 'm': 5, 'l': 6, 'f': 7, 'd': 8}
-                zoo_letters = ['C', 'U', 'R', 'E', 'M', 'L', 'F', 'D']
-                for i, line in enumerate(lines):
-                    if any(letter in line for letter in zoo_letters):
-                        emojis = re.findall(r'<a?:.+?:\d+>', line)
-                        for emoji in emojis:
-                            match = re.search(r'<a?:(.+?):', emoji)
-                            if match:
-                                name = match.group(1).lower()
-                                rarity = zoo_letters[i]
-                                score = rarity_score.get(rarity.lower(), 0)
-                                animals.append((score, name))
-                top_animals = sorted(animals, reverse=True)[:3]
-                if top_animals:
-                    team_cmd = "owo team add " + " ".join([a[1] for a in top_animals])
-                    await ctx.send(team_cmd)
-                    print(f"[Auto Equip] {team_cmd}")
-    except Exception as e:
-        print(f"[Auto Equip Error] {e}")
-
-
-
 @ghosty.command()
 async def start(ctx):
     global running, last_gem_check
     running = True
     last_gem_check = time.time()
-    await equip_best(ctx)
     last_command = None
     farm_count = 0
 
