@@ -108,16 +108,16 @@ async def parse_gems(inventory_message):
     for tier in ['1', '2', '3', '4']:
         if gems_by_tier[tier]:
             selected_gems.append(gems_by_tier[tier][0][1])
-
+    
     return selected_gems
 
 async def do_gem_check(ctx):
     await ctx.send("owo inventory")
     await made_by_ghosty.sleep(3)  
-
+    
     try:
         latest_messages = await ctx.channel.history(limit=2).flatten()
-
+        
         for message in latest_messages:
             if message.author.id == 408785106942164992:  
                 if "inventory" in message.content.lower():
@@ -139,10 +139,10 @@ async def check_warning(ctx):
     global running
     try:
         messages = await ctx.channel.history(limit=10).flatten()
-
+        
         for msg in messages:
             msg_content = str(msg.content).lower()
-
+      
             checkph = [
                 "captcha",
                 "Please complete thi​s wit​hin 1​0 m​inutes o​r i​t m​ay r​esult i​n a​ ba​n!",
@@ -151,10 +151,10 @@ async def check_warning(ctx):
             ]
             if any(phrase.lower() in msg_content for phrase in checkph):
 
-
+            
                 global running
                 running = False
-
+                
                 await ctx.send("⚠ Warning Detected! 🛑 Stopping The Process | Type .start again to re-start grinding")
                 print("⚠ Warning Detected! 🛑 Stopping The Process | Type .start again to re-start grinding")
                 return True
@@ -163,6 +163,7 @@ async def check_warning(ctx):
         print(f"Warning check error: {e}")
         return False
 
+
 @ghosty.command()
 async def start(ctx):
     global running, last_gem_check
@@ -170,6 +171,30 @@ async def start(ctx):
     last_gem_check = time.time()
     last_command = None
     farm_count = 0
+    start_time = time.time()
+
+    def get_next_cmd(farm_count):
+        base_cmds = ["owo hunt", "owo battle", "owo pray"]
+        if farm_count % 5 == 0:
+            base_cmds.append("owo sell all")
+        if farm_count % 20 == 0:
+            base_cmds.append("owo roll")
+        if ghostyjija.random() < 0.1:
+            base_cmds += ["owo cry", "owo dance", "owo zoo", "owo profile", "owo level"]
+        return ghostyjija.choice(base_cmds)
+
+    async def auto_rest(start_time):
+        if time.time() - start_time >= 600: 
+            await ctx.send("💤 Nghỉ 5 phút để thư giãn...")
+            await made_by_ghosty.sleep(ghostyjija.uniform(290, 320))
+            return time.time()
+        return start_time
+
+    async def avoid_suspicion(ctx):
+        if ghostyjija.random() < 0.08:
+            sus_cmd = ghostyjija.choice(["owo zoo", "owo profile", "owo cry", "owo dance", "owo level"])
+            await ctx.send(sus_cmd)
+            await made_by_ghosty.sleep(ghostyjija.uniform(2.0, 4.0))
 
     while running:
         try:
@@ -179,24 +204,17 @@ async def start(ctx):
                 await do_gem_check(ctx)
                 last_gem_check = now
 
-            smart_choices = [
-                "owo hunt", "owo battle", "owo pray",
-                ghostyjija.choices(["owo s 1", "owo piku", "owo army"], weights=[0.4, 0.3, 0.3])[0],
-                ghostyjija.choices(["owo b", "owo h", "owo zoo"], weights=[0.3, 0.4, 0.3])[0]
-            ]
+            start_time = await auto_rest(start_time)
 
-            if farm_count % 12 == 0:
-                smart_choices.append("owo sell all")
-            if ghostyjija.random() < 0.03:
-                smart_choices.append("owo roll")
+            await avoid_suspicion(ctx)
 
-            command = ghostyjija.choice(smart_choices)
+            command = get_next_cmd(farm_count)
             while command == last_command:
-                command = ghostyjija.choice(smart_choices)
+                command = get_next_cmd(farm_count)
             last_command = command
 
             await ctx.trigger_typing()
-            await made_by_ghosty.sleep(ghostyjija.uniform(0.4, 1.2))
+            await made_by_ghosty.sleep(ghostyjija.uniform(0.8, 2.0))
             await ctx.send(command)
 
             if await check_warning(ctx): break
@@ -204,9 +222,6 @@ async def start(ctx):
             farm_count += 1
             delay = ghostyjija.betavariate(2.0, 5.0) * 18 + 5
             await made_by_ghosty.sleep(delay)
-
-            if ghostyjija.random() < 0.04:
-                await made_by_ghosty.sleep(ghostyjija.uniform(300, 600))
 
         except Exception as e:
             print(f"[Error] {e}")
