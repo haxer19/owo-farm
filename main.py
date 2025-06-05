@@ -108,16 +108,16 @@ async def parse_gems(inventory_message):
     for tier in ['1', '2', '3', '4']:
         if gems_by_tier[tier]:
             selected_gems.append(gems_by_tier[tier][0][1])
-    
+
     return selected_gems
 
 async def do_gem_check(ctx):
     await ctx.send("owo inventory")
     await made_by_ghosty.sleep(3)  
-    
+
     try:
         latest_messages = await ctx.channel.history(limit=2).flatten()
-        
+
         for message in latest_messages:
             if message.author.id == 408785106942164992:  
                 if "inventory" in message.content.lower():
@@ -139,10 +139,10 @@ async def check_warning(ctx):
     global running
     try:
         messages = await ctx.channel.history(limit=10).flatten()
-        
+
         for msg in messages:
             msg_content = str(msg.content).lower()
-      
+
             checkph = [
                 "captcha",
                 "Please complete thi​s wit​hin 1​0 m​inutes o​r i​t m​ay r​esult i​n a​ ba​n!",
@@ -151,10 +151,10 @@ async def check_warning(ctx):
             ]
             if any(phrase.lower() in msg_content for phrase in checkph):
 
-            
+
                 global running
                 running = False
-                
+
                 await ctx.send("⚠ Warning Detected! 🛑 Stopping The Process | Type .start again to re-start grinding")
                 print("⚠ Warning Detected! 🛑 Stopping The Process | Type .start again to re-start grinding")
                 return True
@@ -237,6 +237,35 @@ async def stop(ctx):
     running = False
 
 
+repeat_tasks = {}
+
+@ghosty.command()
+async def vs(ctx, action=None, *, content=None):
+    global repeat_tasks
+
+    if action not in ["start", "stop"] or not content:
+        await ctx.send("❌ Dùng đúng cú pháp: `.vs start nội_dung` hoặc `.vs stop nội_dung`")
+        return
+    key = content.strip().lower()
+    if action == "start":
+        if key in repeat_tasks:
+            await ctx.send(f"⚠ `{content}` đang chạy rồi!")
+            return
+        async def repeat_sender():
+            while key in repeat_tasks:
+                await ctx.send(content)
+                await made_by_ghosty.sleep(600)  
+
+        repeat_tasks[key] = ghosty.loop.create_task(repeat_sender())
+        await ctx.send(f"✅ Bắt đầu gửi `{content}` mỗi 10 phút.")
+
+    elif action == "stop":
+        task = repeat_tasks.pop(key, None)
+        if task:
+            task.cancel()
+            await ctx.send(f"🛑 Đã dừng gửi `{content}`.")
+        else:
+            await ctx.send(f"⚠ Không tìm thấy nội dung `{content}` đang chạy.")
 
 
 
