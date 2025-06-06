@@ -180,7 +180,7 @@ async def start(ctx):
         if farm_count % 20 == 0:
             base_cmds.append("owo roll")
         if ghostyjija.random() < 0.1:
-            base_cmds += ["owo cry", "owo dance", "owo zoo", "owo profile", "owo level"]
+            base_cmds += ["owo kill <@408785106942164992>", "owo punch <@408785106942164992>", "owo hug <@408785106942164992>",]
         return ghostyjija.choice(base_cmds)
 
     async def auto_rest(start_time):
@@ -192,7 +192,7 @@ async def start(ctx):
 
     async def avoid_suspicion(ctx):
         if ghostyjija.random() < 0.08:
-            sus_cmd = ghostyjija.choice(["owo zoo", "owo profile", "owo cry", "owo dance", "owo level"])
+            sus_cmd = ghostyjija.choice(["owo zoo", "owo cry", "owo dance"])
             await ctx.send(sus_cmd)
             await made_by_ghosty.sleep(ghostyjija.uniform(2.0, 4.0))
 
