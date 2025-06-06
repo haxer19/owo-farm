@@ -237,36 +237,50 @@ async def stop(ctx):
     running = False
 
 
-repeat_tasks = {}
+chat_tasks = {}  
 
 @ghosty.command()
-async def vs(ctx, action=None, *, content=None):
-    global repeat_tasks
+async def chat(ctx, action=None, *, args=None):
+    global chat_tasks
 
-    if action not in ["start", "stop"] or not content:
-        await ctx.send("❌ Dùng đúng cú pháp: `.vs start nội_dung` hoặc `.vs stop nội_dung`")
-        return
-    key = content.strip().lower()
     if action == "start":
-        if key in repeat_tasks:
-            await ctx.send(f"⚠ `{content}` đang chạy rồi!")
-            return
-        async def repeat_sender():
-            while key in repeat_tasks:
-                await ctx.send(content)
-                await made_by_ghosty.sleep(600)  
+        try:
+            parts = args.rsplit(" ", 1)
+            if len(parts) != 2:
+                await ctx.send("❌ Sai cú pháp! Dùng: `.chat start <nội dung> <thời gian>`")
+                return
 
-        repeat_tasks[key] = ghosty.loop.create_task(repeat_sender())
-        await ctx.send(f"✅ Bắt đầu gửi `{content}` mỗi 10 phút.")
+            message_content, delay_str = parts
+            delay = float(delay_str)
+
+            if message_content in chat_tasks:
+                await ctx.send("⚠ Đã có một nhiệm vụ đang chạy với nội dung đó.")
+                return
+
+            async def chat_loop():
+                while True:
+                    await ctx.send(message_content)
+                    await made_by_ghosty.sleep(delay)
+
+            task = made_by_ghosty.create_task(chat_loop())
+            chat_tasks[message_content] = task
+
+            await ctx.send(f"✅ Đã bắt đầu spam: `{message_content}` mỗi {delay} giây.")
+
+        except Exception as e:
+            await ctx.send(f"❌ Lỗi: {e}")
 
     elif action == "stop":
-        task = repeat_tasks.pop(key, None)
-        if task:
-            task.cancel()
-            await ctx.send(f"🛑 Đã dừng gửi `{content}`.")
+        message_content = args.strip()
+        if message_content in chat_tasks:
+            chat_tasks[message_content].cancel()
+            del chat_tasks[message_content]
+            await ctx.send(f"🛑 Đã dừng spam: `{message_content}`")
         else:
-            await ctx.send(f"⚠ Không tìm thấy nội dung `{content}` đang chạy.")
+            await ctx.send("⚠ Không tìm thấy nội dung đang spam đó.")
 
+    else:
+        await ctx.send("❓ Dùng `.chat start <nội dung> <delay>` hoặc `.chat stop <nội dung>`")
 
 
 with open("config.json", "r") as config_file:  
